@@ -1,5 +1,5 @@
 import "server-only";
-import { getAIClient, AI_MODEL } from "@/lib/ai/client";
+import { callAI } from "@/lib/ai/client";
 import { LEAD_SCORE_SYSTEM_PROMPT } from "@/lib/ai/prompts";
 import { computeConversationMetrics } from "@/lib/utils/conversation-metrics";
 import { SCORE_FACTORS } from "@/config/lead-score";
@@ -40,21 +40,8 @@ export async function calculateLeadScore(
 Conversación:
 ${trimmed}`;
 
-  const anthropic = getAIClient();
-
-  const response = await anthropic.messages.create({
-    model: AI_MODEL,
-    max_tokens: 1536,
-    system: LEAD_SCORE_SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userMessage }],
-  });
-
-  const textBlock = response.content.find((block) => block.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("La IA no devolvió una respuesta de texto legible.");
-  }
-
-  const cleaned = textBlock.text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const rawText = await callAI(LEAD_SCORE_SYSTEM_PROMPT, userMessage, 1536);
+  const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
 
   let parsed: unknown;
   try {

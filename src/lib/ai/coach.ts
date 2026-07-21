@@ -1,5 +1,5 @@
 import "server-only";
-import { getAIClient, AI_MODEL } from "@/lib/ai/client";
+import { callAI } from "@/lib/ai/client";
 import { SALES_COACH_SYSTEM_PROMPT } from "@/lib/ai/prompts";
 import type { CoachAnalysis, LevelAssessment, SuggestedResponse } from "@/types/coach";
 
@@ -56,21 +56,8 @@ export async function analyzeSalesCoach(conversationText: string): Promise<Coach
     return emptyCoachAnalysis();
   }
 
-  const anthropic = getAIClient();
-
-  const response = await anthropic.messages.create({
-    model: AI_MODEL,
-    max_tokens: 2048,
-    system: SALES_COACH_SYSTEM_PROMPT,
-    messages: [{ role: "user", content: trimmed }],
-  });
-
-  const textBlock = response.content.find((block) => block.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("La IA no devolvió una respuesta de texto legible.");
-  }
-
-  const cleaned = textBlock.text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const rawText = await callAI(SALES_COACH_SYSTEM_PROMPT, trimmed, 2048);
+  const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
 
   let parsed: unknown;
   try {

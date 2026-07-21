@@ -1,5 +1,5 @@
 import "server-only";
-import { getAIClient, AI_MODEL } from "@/lib/ai/client";
+import { callAI } from "@/lib/ai/client";
 import { FOLLOW_UP_SYSTEM_PROMPT } from "@/lib/ai/prompts";
 import type { FollowUpStatus } from "@/config/follow-up";
 import type { FollowUpSuggestion } from "@/types/follow-up";
@@ -29,21 +29,8 @@ Umbral considerado "demasiado tiempo" para este cliente: ${status.thresholdDays}
 Conversación completa (no repitas nada de lo que ya se dijo acá):
 ${trimmed}`;
 
-  const anthropic = getAIClient();
-
-  const response = await anthropic.messages.create({
-    model: AI_MODEL,
-    max_tokens: 1024,
-    system: FOLLOW_UP_SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userMessage }],
-  });
-
-  const textBlock = response.content.find((block) => block.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("La IA no devolvió una respuesta de texto legible.");
-  }
-
-  const cleaned = textBlock.text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const rawText = await callAI(FOLLOW_UP_SYSTEM_PROMPT, userMessage, 1024);
+  const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
 
   let parsed: unknown;
   try {
