@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
     // y esté limpio.
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    // El chat de "captura de pantalla" manda la imagen como base64 dentro
+    // del cuerpo de la Server Action — el límite por defecto (1mb) se
+    // queda corto para una captura de pantalla normal.
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
 };
 
 export default nextConfig;
