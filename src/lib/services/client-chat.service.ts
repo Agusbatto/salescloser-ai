@@ -6,6 +6,7 @@ interface ChatMessageRow {
   id: string;
   role: string;
   content: string;
+  image_data_url: string | null;
   created_at: string;
 }
 
@@ -13,7 +14,7 @@ export async function listClientChatMessages(clientId: string): Promise<ClientCh
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("client_chat_messages")
-    .select("id, role, content, created_at")
+    .select("id, role, content, image_data_url, created_at")
     .eq("client_id", clientId)
     .order("created_at", { ascending: true });
 
@@ -23,6 +24,7 @@ export async function listClientChatMessages(clientId: string): Promise<ClientCh
     id: row.id,
     role: row.role === "assistant" ? "assistant" : "user",
     content: row.content,
+    imageDataUrl: row.image_data_url,
     createdAt: row.created_at,
   }));
 }
@@ -31,6 +33,7 @@ export async function addClientChatMessage(
   clientId: string,
   role: "user" | "assistant",
   content: string,
+  imageDataUrl?: string | null,
 ): Promise<void> {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
@@ -41,6 +44,7 @@ export async function addClientChatMessage(
     owner_id: userData.user.id,
     role,
     content,
+    image_data_url: imageDataUrl ?? null,
   });
 
   if (error) throw new Error(`No se pudo guardar el mensaje: ${error.message}`);

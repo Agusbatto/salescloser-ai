@@ -1,10 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { Client, ClientFilters } from "@/types/client";
+import type { Client, ClientFilters, RoomConfig } from "@/types/client";
 import type { ClientInput } from "@/lib/validations/client";
-import type { TravelAnalysis } from "@/config/travel-analysis";
 import type { CoachAnalysis } from "@/types/coach";
-import type { LeadScore } from "@/types/lead-score";
 import type { FollowUpSuggestion } from "@/types/follow-up";
 import type { SalesIntelligence } from "@/types/sales-intelligence";
 import type { PreContactStrategy } from "@/types/pre-contact";
@@ -29,16 +27,20 @@ interface ClientRow {
   lead_origin: string | null;
   status: string;
   notes: string | null;
-  conversation: string | null;
   last_contact_at: string | null;
   created_at: string;
   updated_at: string;
-  travel_analysis: TravelAnalysis | null;
-  analysis_updated_at: string | null;
+  combined_destinations: string[] | null;
+  alternative_destinations: string[] | null;
+  date_flexibility: string | null;
+  adults_count: number | null;
+  minors_ages: number[] | null;
+  rooms: RoomConfig[] | null;
+  passenger_relationship: string | null;
+  trip_reason: string | null;
+  additional_info: string | null;
   coach_analysis: CoachAnalysis | null;
   coach_analysis_updated_at: string | null;
-  lead_score: LeadScore | null;
-  lead_score_updated_at: string | null;
   follow_up: FollowUpSuggestion | null;
   follow_up_updated_at: string | null;
   sales_intelligence: SalesIntelligence | null;
@@ -60,16 +62,20 @@ function mapClient(row: ClientRow): Client {
     leadOrigin: row.lead_origin,
     status: row.status,
     notes: row.notes,
-    conversation: row.conversation,
     lastContactAt: row.last_contact_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    travelAnalysis: row.travel_analysis,
-    analysisUpdatedAt: row.analysis_updated_at,
+    combinedDestinations: row.combined_destinations ?? [],
+    alternativeDestinations: row.alternative_destinations ?? [],
+    dateFlexibility: row.date_flexibility,
+    adultsCount: row.adults_count,
+    minorsAges: row.minors_ages ?? [],
+    rooms: row.rooms ?? [],
+    passengerRelationship: row.passenger_relationship,
+    tripReason: row.trip_reason,
+    additionalInfo: row.additional_info,
     coachAnalysis: row.coach_analysis,
     coachAnalysisUpdatedAt: row.coach_analysis_updated_at,
-    leadScore: row.lead_score,
-    leadScoreUpdatedAt: row.lead_score_updated_at,
     followUp: row.follow_up,
     followUpUpdatedAt: row.follow_up_updated_at,
     salesIntelligence: row.sales_intelligence,
@@ -84,11 +90,12 @@ function mapClient(row: ClientRow): Client {
 
 const CLIENT_SELECT = `
   id, owner_id, name, company, phone, email,
-  product_interest, lead_origin, status, notes, conversation,
+  product_interest, lead_origin, status, notes,
   last_contact_at, created_at, updated_at,
-  travel_analysis, analysis_updated_at,
+  combined_destinations, alternative_destinations, date_flexibility,
+  adults_count, minors_ages, rooms, passenger_relationship,
+  trip_reason, additional_info,
   coach_analysis, coach_analysis_updated_at,
-  lead_score, lead_score_updated_at,
   follow_up, follow_up_updated_at,
   sales_intelligence, sales_intelligence_updated_at,
   pre_contact_strategy, pre_contact_strategy_updated_at,
@@ -155,8 +162,16 @@ function toDbPayload(input: ClientInput, ownerId?: string) {
     lead_origin: input.leadOrigin || null,
     status: input.status,
     notes: input.notes || null,
-    conversation: input.conversation || null,
     last_contact_at: input.lastContactAt || null,
+    combined_destinations: input.combinedDestinations ?? [],
+    alternative_destinations: input.alternativeDestinations ?? [],
+    date_flexibility: input.dateFlexibility || null,
+    adults_count: input.adultsCount ?? null,
+    minors_ages: input.minorsAges ?? [],
+    rooms: input.rooms ?? [],
+    passenger_relationship: input.passengerRelationship || null,
+    trip_reason: input.tripReason || null,
+    additional_info: input.additionalInfo || null,
   };
 }
 
@@ -211,19 +226,6 @@ export async function setClientTags(clientId: string, tagIds: string[]): Promise
   if (insertError) throw new Error(`No se pudieron asignar las etiquetas: ${insertError.message}`);
 }
 
-export async function updateClientAnalysis(id: string, analysis: TravelAnalysis): Promise<void> {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("clients")
-    .update({
-      travel_analysis: analysis,
-      analysis_updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-
-  if (error) throw new Error(`No se pudo guardar el análisis: ${error.message}`);
-}
-
 export async function updateClientCoachAnalysis(id: string, analysis: CoachAnalysis): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
@@ -235,19 +237,6 @@ export async function updateClientCoachAnalysis(id: string, analysis: CoachAnaly
     .eq("id", id);
 
   if (error) throw new Error(`No se pudo guardar el análisis de venta: ${error.message}`);
-}
-
-export async function updateClientLeadScore(id: string, leadScore: LeadScore): Promise<void> {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("clients")
-    .update({
-      lead_score: leadScore,
-      lead_score_updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-
-  if (error) throw new Error(`No se pudo guardar el puntaje del lead: ${error.message}`);
 }
 
 export async function updateClientFollowUp(id: string, followUp: FollowUpSuggestion): Promise<void> {

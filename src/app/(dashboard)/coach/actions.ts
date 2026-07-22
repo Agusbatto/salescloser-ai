@@ -1,6 +1,7 @@
 "use server";
 
 import { chatAboutScreenshot } from "@/lib/ai/screenshot-coach";
+import { getAgencySettings, buildAgencyContext } from "@/lib/services/agency-settings.service";
 import type { ChatTurn } from "@/lib/ai/client";
 
 export interface ChatMessage {
@@ -22,5 +23,12 @@ export async function sendScreenshotMessage(history: ChatMessage[]): Promise<str
     imageDataUrl: m.imageDataUrl,
   }));
 
-  return chatAboutScreenshot(turns);
+  let agencyContext = "";
+  try {
+    agencyContext = buildAgencyContext(await getAgencySettings());
+  } catch (err) {
+    console.error("No se pudo cargar la configuración de agencia:", err);
+  }
+
+  return chatAboutScreenshot(turns, agencyContext);
 }

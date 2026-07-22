@@ -1,14 +1,22 @@
+import { getAgencySettings } from "@/lib/services/agency-settings.service";
+import { AgencySettingsForm } from "@/components/features/settings/AgencySettingsForm";
 import { Card } from "@/components/ui/Card";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const settings = await getAgencySettings();
+
   return (
-    <div className="max-w-2xl">
-      <h1 className="mb-4 text-xl font-semibold text-gray-900">Configuración</h1>
-      <Card>
-        <p className="text-sm text-gray-700">
-          Todavía no hay opciones de configuración de cuenta u organización. Para cerrar
-          sesión, usá el botón de abajo del menú lateral.
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">Configuración</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Estos datos los usa la IA para firmar mensajes correctamente y ofrecer servicios
+          adicionales cuando tenga sentido — en el seguimiento, el diagnóstico de venta y los
+          dos chats.
         </p>
+      </div>
+      <Card>
+        <AgencySettingsForm settings={settings} />
       </Card>
     </div>
   );

@@ -16,13 +16,14 @@ function emptyFollowUpSuggestion(): FollowUpSuggestion {
 export async function generateFollowUp(
   conversation: string,
   status: FollowUpStatus,
+  agencyContext?: string,
 ): Promise<FollowUpSuggestion> {
   const trimmed = conversation.trim();
   if (!trimmed) {
     return emptyFollowUpSuggestion();
   }
 
-  const userMessage = `Días desde el último contacto: ${status.daysSinceLastContact ?? "sin datos"}
+  const userMessage = `${agencyContext ? `Datos de la agencia (usalos para firmar el mensaje y ofrecer servicios adicionales si corresponde):\n${agencyContext}\n\n` : ""}Días desde el último contacto: ${status.daysSinceLastContact ?? "sin datos"}
 Umbral considerado "demasiado tiempo" para este cliente: ${status.thresholdDays} días
 ¿Ya está atrasado?: ${status.isOverdue ? "Sí" : "No, todavía no"}
 

@@ -1,5 +1,5 @@
 import "server-only";
-import { callAIChat, type ChatTurn } from "@/lib/ai/client";
+import { callAIChat, compactHistoryIfNeeded, type ChatTurn } from "@/lib/ai/client";
 import { CLIENT_CHAT_SYSTEM_PROMPT_BASE } from "@/lib/ai/prompts";
 import type { Client } from "@/types/client";
 import type { ClientChatMessage } from "@/types/client-chat";
@@ -9,24 +9,39 @@ import type { ClientChatMessage } from "@/types/client-chat";
  * inyectarlo como contexto en cada respuesta. Se reconstruye en cada
  * llamada (no se guarda), así siempre refleja el estado más reciente
  * del cliente, aunque haya cambiado desde el último mensaje del chat.
+ *
+ * La ficha del viaje ahora es manual (no viene de un análisis de IA de
+ * una conversación pegada) — se arma acá a partir de los campos que el
+ * vendedor cargó en el formulario.
  */
 function buildClientContext(client: Client): string {
   const parts = [
     `Nombre: ${client.name}`,
     `Estado: ${client.status}`,
     client.productInterest ? `Producto consultado: ${client.productInterest}` : null,
+    client.combinedDestinations.length > 0
+      ? `Destino: ${client.combinedDestinations.join(" → ")}`
+      : null,
+    client.alternativeDestinations.length > 0
+      ? `Destinos alternativos: ${client.alternativeDestinations.join(", ")}`
+      : null,
+    client.dateFlexibility ? `Flexibilidad de fechas: ${client.dateFlexibility}` : null,
+    client.adultsCount
+      ? `Pasajeros: ${client.adultsCount} adulto(s)${
+          client.minorsAges.length > 0 ? `, menores de ${client.minorsAges.join(", ")} años` : ""
+        }`
+      : null,
+    client.passengerRelationship ? `Vínculo entre pasajeros: ${client.passengerRelationship}` : null,
+    client.tripReason ? `Motivo del viaje: ${client.tripReason}` : null,
+    client.additionalInfo ? `Información adicional: ${client.additionalInfo}` : null,
     client.coachAnalysis?.stage ? `Etapa comercial: ${client.coachAnalysis.stage}` : null,
     client.coachAnalysis?.temperature ? `Temperatura: ${client.coachAnalysis.temperature}` : null,
-    typeof client.leadScore?.score === "number"
-      ? `Puntaje del lead: ${client.leadScore.score}/100`
-      : null,
     client.salesIntelligence?.executiveSummary
-      ? `Resumen ejecutivo:\n${client.salesIntelligence.executiveSummary}`
+      ? `Resumen ejecutivo del último análisis:\n${client.salesIntelligence.executiveSummary}`
       : null,
-    client.conversation ? `Conversación pegada con el cliente:\n${client.conversation}` : null,
   ].filter((part): part is string => !!part);
 
-  return parts.length > 0 ? parts.join("\n\n") : "Todavía no hay datos cargados de este cliente.";
+  return parts.length > 0 ? parts.join("\n") : "Todavía no hay datos cargados de este cliente.";
 }
 
 /**
@@ -37,17 +52,23 @@ export async function replyInClientChat(
   client: Client,
   history: ClientChatMessage[],
   newUserMessage: string,
+  newImageDataUrl?: string | null,
+  agencyContext?: string,
 ): Promise<string> {
   const systemPrompt = `${CLIENT_CHAT_SYSTEM_PROMPT_BASE}
-
+${agencyContext ? `\nDatos de la agencia (usalos para firmar mensajes y ofrecer servicios adicionales si corresponde):\n${agencyContext}\n` : ""}
 Contexto actual de este cliente:
 ${buildClientContext(client)}`;
 
   const turns: ChatTurn[] = [
-    ...history.map((m) => ({ role: m.role, text: m.content })),
-    { role: "user" as const, text: newUserMessage },
+    ...history.map((m) => ({ role: m.role, text: m.content, imageDataUrl: m.imageDataUrl ?? undefined })),
+    { role: "user" as const, text: newUserMessage, imageDataUrl: newImageDataUrl ?? undefined },
   ];
 
-  const reply = await callAIChat(systemPrompt, turns, 1024);
+  // Compacta solo lo que se le manda a la IA — el historial guardado en
+  // `client_chat_messages` (lo que ve el vendedor) no se toca acá.
+  const compactedTurns = await compactHistoryIfNeeded(turns);
+
+  const reply = await callAIChat(systemPrompt, compactedTurns, 1024);
   return reply.trim();
 }

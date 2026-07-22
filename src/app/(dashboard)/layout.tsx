@@ -2,11 +2,13 @@ import Link from "next/link";
 import { appConfig } from "@/config/app";
 import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "@/app/(auth)/actions";
+import { TasksSidebar } from "@/components/features/tasks/TasksSidebar";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/contacts", label: "Clientes" },
   { href: "/coach", label: "Coach IA" },
+  { href: "/libro", label: "Libro de ventas" },
   { href: "/settings", label: "Configuración" },
 ];
 
@@ -50,6 +52,7 @@ export default async function DashboardLayout({
         </div>
       </aside>
       <main className="flex-1 overflow-x-auto bg-gray-50 px-8 py-8">{children}</main>
+      <TasksSidebar />
     </div>
   );
 }

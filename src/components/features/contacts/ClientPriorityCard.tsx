@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Client } from "@/types/client";
 import { toneColor, parsePurchaseProbability } from "@/config/coach";
-import { getScoreColor } from "@/config/lead-score";
 import { computeFollowUpStatus } from "@/config/follow-up";
 import { Badge } from "@/components/ui/Badge";
 
@@ -36,12 +35,6 @@ export function ClientPriorityCard({ client, rank }: { client: Client; rank: num
                 <Badge label={coach.temperature} color={toneColor(coach.temperature)} />
               )}
               {coach?.stage && <Badge label={coach.stage} color="#6366F1" />}
-              {client.leadScore?.score !== null && client.leadScore?.score !== undefined && (
-                <Badge
-                  label={`Score ${client.leadScore.score}`}
-                  color={getScoreColor(client.leadScore.score)}
-                />
-              )}
               {followUpStatus.isOverdue && <Badge label="⏰ Atrasado" color="#EF4444" />}
             </div>
           </div>

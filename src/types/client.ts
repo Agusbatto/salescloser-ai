@@ -1,6 +1,4 @@
-import type { TravelAnalysis } from "@/config/travel-analysis";
 import type { CoachAnalysis } from "@/types/coach";
-import type { LeadScore } from "@/types/lead-score";
 import type { FollowUpSuggestion } from "@/types/follow-up";
 import type { SalesIntelligence } from "@/types/sales-intelligence";
 import type { PreContactStrategy } from "@/types/pre-contact";
@@ -9,6 +7,12 @@ export interface Tag {
   id: string;
   name: string;
   color: string;
+}
+
+/** Una habitación: cuántos adultos y las edades de los menores que la comparten. */
+export interface RoomConfig {
+  adults: number;
+  minorsAges: number[];
 }
 
 export interface Client {
@@ -22,17 +26,25 @@ export interface Client {
   leadOrigin: string | null;
   status: string;
   notes: string | null;
-  conversation: string | null;
   lastContactAt: string | null;
   createdAt: string;
   updatedAt: string;
   tags: Tag[];
-  travelAnalysis: TravelAnalysis | null;
-  analysisUpdatedAt: string | null;
+
+  // Ficha del viaje — cargada a mano por el vendedor, no por IA.
+  combinedDestinations: string[];
+  alternativeDestinations: string[];
+  dateFlexibility: string | null;
+  adultsCount: number | null;
+  minorsAges: number[];
+  rooms: RoomConfig[];
+  passengerRelationship: string | null;
+  tripReason: string | null;
+  additionalInfo: string | null;
+
+  // Análisis de IA — se disparan a mano desde el chat del cliente.
   coachAnalysis: CoachAnalysis | null;
   coachAnalysisUpdatedAt: string | null;
-  leadScore: LeadScore | null;
-  leadScoreUpdatedAt: string | null;
   followUp: FollowUpSuggestion | null;
   followUpUpdatedAt: string | null;
   salesIntelligence: SalesIntelligence | null;

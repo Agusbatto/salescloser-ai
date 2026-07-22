@@ -1,24 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClient } from "@/lib/services/contacts.service";
-import { listClientEvents } from "@/lib/services/timeline.service";
 import { listClientChatMessages } from "@/lib/services/client-chat.service";
 import { getStatusMeta } from "@/config/crm";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { DeleteClientButton } from "@/components/features/contacts/DeleteClientButton";
-import { TravelAnalysisSummary } from "@/components/features/contacts/TravelAnalysisSummary";
-import { AnalysisChecklist } from "@/components/features/contacts/AnalysisChecklist";
+import { TripInfoCard } from "@/components/features/contacts/TripInfoCard";
 import { CoachAnalysisCard } from "@/components/features/contacts/CoachAnalysisCard";
-import { LeadScoreCard } from "@/components/features/contacts/LeadScoreCard";
 import { FollowUpCard } from "@/components/features/contacts/FollowUpCard";
 import { SalesIntelligenceCard } from "@/components/features/contacts/SalesIntelligenceCard";
 import { PreContactStrategyCard } from "@/components/features/contacts/PreContactStrategyCard";
 import { RegeneratePreContactButton } from "@/components/features/contacts/RegeneratePreContactButton";
-import { ClientTimeline } from "@/components/features/contacts/ClientTimeline";
 import { ClientChatPanel } from "@/components/features/contacts/ClientChatPanel";
-import { ReanalyzeButton } from "@/components/features/contacts/ReanalyzeButton";
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>;
@@ -35,11 +30,7 @@ function formatDate(value: string | null) {
 
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { id } = await params;
-  const [client, events, chatMessages] = await Promise.all([
-    getClient(id),
-    listClientEvents(id),
-    listClientChatMessages(id),
-  ]);
+  const [client, chatMessages] = await Promise.all([getClient(id), listClientChatMessages(id)]);
   if (!client) notFound();
 
   const statusMeta = getStatusMeta(client.status);
@@ -83,33 +74,25 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           </Card>
 
           <Card>
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-medium text-gray-900">
-                  Sales Intelligence — diagnóstico ejecutivo
-                </h2>
-                <p className="text-xs text-gray-500">
-                  {client.salesIntelligenceUpdatedAt
-                    ? `Actualizado ${formatDate(client.salesIntelligenceUpdatedAt)}`
-                    : "Se genera junto con el resto del análisis."}
-                </p>
-              </div>
-              <ReanalyzeButton clientId={client.id} />
+            <div className="mb-4">
+              <h2 className="text-sm font-medium text-gray-900">
+                Sales Intelligence — diagnóstico ejecutivo
+              </h2>
+              <p className="text-xs text-gray-500">
+                {client.salesIntelligenceUpdatedAt
+                  ? `Actualizado ${formatDate(client.salesIntelligenceUpdatedAt)}`
+                  : "Se genera con el botón \"Analizar conversación\" del chat →"}
+              </p>
             </div>
             <SalesIntelligenceCard data={client.salesIntelligence} />
           </Card>
 
           <Card className="space-y-5">
             <div>
-              <h2 className="text-sm font-medium text-gray-900">Ficha resumen del viaje (IA)</h2>
-              <p className="text-xs text-gray-500">
-                {client.analysisUpdatedAt
-                  ? `Actualizado ${formatDate(client.analysisUpdatedAt)}`
-                  : "Todavía no se analizó ninguna conversación."}
-              </p>
+              <h2 className="text-sm font-medium text-gray-900">Ficha del viaje</h2>
+              <p className="text-xs text-gray-500">Cargada a mano — sin costo de IA.</p>
             </div>
-            <AnalysisChecklist analysis={client.travelAnalysis} />
-            <TravelAnalysisSummary analysis={client.travelAnalysis} />
+            <TripInfoCard client={client} />
           </Card>
 
           <Card>
@@ -118,7 +101,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               <p className="text-xs text-gray-500">
                 {client.coachAnalysisUpdatedAt
                   ? `Actualizado ${formatDate(client.coachAnalysisUpdatedAt)}`
-                  : "Se genera junto con la ficha resumen, con el mismo botón."}
+                  : "Se genera con el botón \"Analizar conversación\" del chat →"}
               </p>
             </div>
             <CoachAnalysisCard analysis={client.coachAnalysis} />
@@ -163,38 +146,13 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               <p className="whitespace-pre-wrap text-sm text-gray-700">{client.notes}</p>
             </Card>
           )}
-
-          <Card>
-            <h2 className="mb-2 text-sm font-medium text-gray-900">Conversación completa</h2>
-            {client.conversation ? (
-              <pre className="whitespace-pre-wrap font-mono text-xs text-gray-700">
-                {client.conversation}
-              </pre>
-            ) : (
-              <p className="text-sm text-gray-500">No se pegó ninguna conversación todavía.</p>
-            )}
-          </Card>
         </div>
 
-        {/* Rail derecho: estado y actividad, visible sin tener que bajar toda la columna principal */}
+        {/* Rail derecho: chat y estado, visible sin tener que bajar toda la columna principal */}
         <div className="space-y-6 xl:col-span-1">
           <Card>
             <h2 className="mb-3 text-sm font-medium text-gray-900">Chat de este cliente</h2>
             <ClientChatPanel clientId={client.id} initialMessages={chatMessages} />
-          </Card>
-
-          <Card>
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-medium text-gray-900">Puntaje del lead (IA)</h2>
-                <p className="text-xs text-gray-500">
-                  {client.leadScoreUpdatedAt
-                    ? `Actualizado ${formatDate(client.leadScoreUpdatedAt)}`
-                    : "Se genera junto con el resto del análisis."}
-                </p>
-              </div>
-            </div>
-            <LeadScoreCard leadScore={client.leadScore} />
           </Card>
 
           <Card>
@@ -204,7 +162,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                 La detección de atraso se calcula en el momento; el mensaje se genera
                 {client.followUpUpdatedAt
                   ? ` y se actualizó ${formatDate(client.followUpUpdatedAt)}.`
-                  : " junto con el resto del análisis."}
+                  : " con el botón \"Analizar conversación\" del chat."}
               </p>
             </div>
             <FollowUpCard
@@ -212,18 +170,6 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               temperature={client.coachAnalysis?.temperature}
               followUp={client.followUp}
             />
-          </Card>
-
-          <Card>
-            <div className="mb-4">
-              <h2 className="text-sm font-medium text-gray-900">Línea de tiempo</h2>
-              <p className="text-xs text-gray-500">
-                Se registra automáticamente: consulta recibida y venta ganada/perdida al
-                guardar, cotización enviada / objeción detectada / seguimiento realizado /
-                cliente respondió al analizar la conversación.
-              </p>
-            </div>
-            <ClientTimeline events={events} />
           </Card>
         </div>
       </div>

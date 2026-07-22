@@ -1,4 +1,4 @@
-import { daysSince } from "@/lib/utils/conversation-metrics";
+import { daysSince } from "@/lib/utils/dates";
 
 /**
  * Umbral de días sin respuesta a partir del cual se considera que un

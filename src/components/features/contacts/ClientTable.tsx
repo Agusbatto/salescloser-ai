@@ -27,7 +27,7 @@ export function ClientTable({ clients }: { clients: Client[] }) {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Nombre</th>
-            <th className="px-4 py-2.5 text-left font-medium text-gray-600">Empresa</th>
+            <th className="px-4 py-2.5 text-left font-medium text-gray-600">Destino</th>
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Producto</th>
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Origen</th>
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Estado</th>
@@ -51,7 +51,11 @@ export function ClientTable({ clients }: { clients: Client[] }) {
                     <div className="text-xs text-gray-500">{client.email}</div>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-gray-600">{client.company || "—"}</td>
+                <td className="px-4 py-2.5 text-gray-600">
+                  {client.combinedDestinations.length > 0
+                    ? client.combinedDestinations.join(" → ")
+                    : "—"}
+                </td>
                 <td className="px-4 py-2.5 text-gray-600">{client.productInterest || "—"}</td>
                 <td className="px-4 py-2.5 text-gray-600">{client.leadOrigin || "—"}</td>
                 <td className="px-4 py-2.5">

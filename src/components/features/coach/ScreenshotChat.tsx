@@ -3,6 +3,8 @@
 import { useRef, useState } from "react";
 import { sendScreenshotMessage, type ChatMessage } from "@/app/(dashboard)/coach/actions";
 import { Button } from "@/components/ui/Button";
+import { CopyMessageButton } from "@/components/ui/CopyMessageButton";
+import { downscaleImage, getImageFromClipboard } from "@/lib/utils/image";
 
 export function ScreenshotChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -12,17 +14,22 @@ export function ScreenshotChat() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setError("El archivo tiene que ser una imagen.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setPendingImage(reader.result as string);
-    reader.readAsDataURL(file);
+    setPendingImage(await downscaleImage(file));
     event.target.value = ""; // permite volver a elegir el mismo archivo después
+  }
+
+  async function handlePaste(event: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const image = getImageFromClipboard(event.clipboardData.items);
+    if (!image) return; // no había ninguna imagen en el portapapeles, se pega el texto normal
+    event.preventDefault();
+    setPendingImage(await downscaleImage(image));
   }
 
   async function handleSend() {
@@ -56,9 +63,9 @@ export function ScreenshotChat() {
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
           <p className="text-sm text-gray-500">
-            Subí una captura de pantalla de una conversación (con el clip de abajo) y contame qué
-            necesitás. Te sugiero mensajes concretos con la técnica de venta en la que se basa
-            cada uno.
+            Subí una captura de pantalla (con el clip) o pegá acá abajo una conversación
+            exportada de WhatsApp (con fecha, hora y remitente) y contame qué necesitás. Te
+            sugiero mensajes concretos con la técnica de venta en la que se basa cada uno.
           </p>
         )}
         {messages.map((message, i) => (
@@ -77,6 +84,11 @@ export function ScreenshotChat() {
                 />
               )}
               {message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
+              {message.role === "assistant" && message.text && (
+                <div className="mt-1.5 border-t border-gray-200 pt-1">
+                  <CopyMessageButton text={message.text} className="text-gray-500" />
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -118,8 +130,7 @@ export function ScreenshotChat() {
         >
           📎
         </Button>
-        <input
-          type="text"
+        <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -128,8 +139,10 @@ export function ScreenshotChat() {
               handleSend();
             }
           }}
-          placeholder="Escribí un mensaje (ej. 'dame otra opción más corta')..."
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+          onPaste={handlePaste}
+          rows={2}
+          placeholder="Escribí, pegá una conversación de WhatsApp, o pegá directo una captura (Ctrl+V)..."
+          className="flex-1 resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
         />
         <Button type="button" onClick={handleSend} disabled={isSending}>
           Enviar
