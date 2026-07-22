@@ -53,6 +53,49 @@ export async function listPendingTasks(): Promise<Task[]> {
   });
 }
 
+export interface ClientTaskCount {
+  clientId: string;
+  clientName: string;
+  count: number;
+  priorityScore: number;
+}
+
+/**
+ * Tareas pendientes agrupadas por cliente — para la barra lateral
+ * simplificada: un nombre de pasajero con un número al lado, ordenado
+ * por probabilidad de cierre (no por fecha de vencimiento).
+ */
+export async function listPendingTaskCountsByClient(): Promise<ClientTaskCount[]> {
+  const tasks = await listPendingTasks();
+
+  const byClient = new Map<string, ClientTaskCount>();
+  for (const task of tasks) {
+    const existing = byClient.get(task.clientId);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      byClient.set(task.clientId, {
+        clientId: task.clientId,
+        clientName: task.clientName,
+        count: 1,
+        priorityScore: task.priorityScore,
+      });
+    }
+  }
+
+  return Array.from(byClient.values()).sort((a, b) => b.priorityScore - a.priorityScore);
+}
+
+/** Cantidad de tareas pendientes por cliente — para mostrar en el listado de Clientes. */
+export async function getPendingTaskCountMap(): Promise<Record<string, number>> {
+  const tasks = await listPendingTasks();
+  const counts: Record<string, number> = {};
+  for (const task of tasks) {
+    counts[task.clientId] = (counts[task.clientId] ?? 0) + 1;
+  }
+  return counts;
+}
+
 export async function createTask(
   clientId: string,
   ownerId: string,

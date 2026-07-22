@@ -12,6 +12,22 @@ export async function saveAgencySettingsAction(
   _prev: SettingsActionResult | null,
   formData: FormData,
 ): Promise<SettingsActionResult> {
+  const servicesJson = formData.get("additionalServicesJson") as string | null;
+  let additionalServices: string | null = null;
+  if (servicesJson) {
+    try {
+      const blocks = JSON.parse(servicesJson);
+      if (Array.isArray(blocks)) {
+        const cleaned = blocks
+          .filter((b): b is string => typeof b === "string" && b.trim().length > 0)
+          .map((b) => b.trim());
+        additionalServices = cleaned.length > 0 ? cleaned.join("\n") : null;
+      }
+    } catch {
+      additionalServices = null;
+    }
+  }
+
   const settings: AgencySettings = {
     fullName: (formData.get("fullName") as string)?.trim() || null,
     gender: (formData.get("gender") as string)?.trim() || null,
@@ -19,7 +35,9 @@ export async function saveAgencySettingsAction(
     agencyLocation: (formData.get("agencyLocation") as string)?.trim() || null,
     agencyPhones: (formData.get("agencyPhones") as string)?.trim() || null,
     emergencyPhone: (formData.get("emergencyPhone") as string)?.trim() || null,
-    additionalServices: (formData.get("additionalServices") as string)?.trim() || null,
+    preferredTone: (formData.get("preferredTone") as string)?.trim() || null,
+    preferredCurrency: (formData.get("preferredCurrency") as string)?.trim() || null,
+    additionalServices,
   };
 
   try {

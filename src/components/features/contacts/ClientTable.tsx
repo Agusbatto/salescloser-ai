@@ -12,7 +12,13 @@ function formatDate(value: string | null) {
   });
 }
 
-export function ClientTable({ clients }: { clients: Client[] }) {
+export function ClientTable({
+  clients,
+  taskCounts,
+}: {
+  clients: Client[];
+  taskCounts: Record<string, number>;
+}) {
   if (clients.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500">
@@ -31,7 +37,7 @@ export function ClientTable({ clients }: { clients: Client[] }) {
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Producto</th>
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Origen</th>
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Estado</th>
-            <th className="px-4 py-2.5 text-left font-medium text-gray-600">Etiquetas</th>
+            <th className="px-4 py-2.5 text-left font-medium text-gray-600">Tareas pendientes</th>
             <th className="px-4 py-2.5 text-left font-medium text-gray-600">Último contacto</th>
           </tr>
         </thead>
@@ -62,11 +68,11 @@ export function ClientTable({ clients }: { clients: Client[] }) {
                   <Badge label={statusMeta.label} color={statusMeta.color} />
                 </td>
                 <td className="px-4 py-2.5">
-                  <div className="flex flex-wrap gap-1">
-                    {client.tags.map((tag) => (
-                      <Badge key={tag.id} label={tag.name} color={tag.color} />
-                    ))}
-                  </div>
+                  {taskCounts[client.id] ? (
+                    <Badge label={`${taskCounts[client.id]} pendiente(s)`} color="#EF4444" />
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-2.5 text-gray-600">{formatDate(client.lastContactAt)}</td>
               </tr>

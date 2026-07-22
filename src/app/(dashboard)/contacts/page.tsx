@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listClients } from "@/lib/services/contacts.service";
 import { listTags } from "@/lib/services/tags.service";
+import { getPendingTaskCountMap } from "@/lib/services/tasks.service";
 import { ClientTable } from "@/components/features/contacts/ClientTable";
 import { ClientFilters } from "@/components/features/contacts/ClientFilters";
 import { TagManager } from "@/components/features/contacts/TagManager";
@@ -18,7 +19,7 @@ interface ContactsPageProps {
 
 export default async function ContactsPage({ searchParams }: ContactsPageProps) {
   const params = await searchParams;
-  const [clients, tags] = await Promise.all([
+  const [clients, tags, taskCounts] = await Promise.all([
     listClients({
       search: params.search,
       status: params.status,
@@ -26,6 +27,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
       tagId: params.tagId,
     }),
     listTags(),
+    getPendingTaskCountMap(),
   ]);
 
   return (
@@ -42,7 +44,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
 
       <ClientFilters tags={tags} defaultValues={params} />
 
-      <ClientTable clients={clients} />
+      <ClientTable clients={clients} taskCounts={taskCounts} />
 
       <Card>
         <h2 className="mb-3 text-sm font-medium text-gray-900">Etiquetas</h2>

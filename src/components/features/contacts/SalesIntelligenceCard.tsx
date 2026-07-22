@@ -34,6 +34,16 @@ function TagList({ items, emptyLabel }: { items: string[]; emptyLabel: string })
   );
 }
 
+/**
+ * A pedido, esta card solo muestra: resumen ejecutivo, probabilidad de
+ * cierre, confianza del cliente, urgencia, objeciones y emociones.
+ * El resto de los campos (etapa, temperatura, riesgo de abandono,
+ * intención de compra, presupuesto, próxima acción, mejor técnica,
+ * preguntas pendientes, info faltante) se siguen calculando y
+ * guardando igual — solo se dejaron de mostrar acá. Se pueden ver en
+ * "Diagnóstico de venta (IA)" (etapa, temperatura, riesgo, próxima
+ * acción, técnicas) y en "Ficha del viaje" (info faltante).
+ */
 export function SalesIntelligenceCard({ data }: { data: SalesIntelligence | null }) {
   if (!data || (!data.stage && !data.executiveSummary)) {
     return (
@@ -54,33 +64,13 @@ export function SalesIntelligenceCard({ data }: { data: SalesIntelligence | null
         </div>
       )}
 
-      <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div>
-          <dt className="text-xs font-medium uppercase text-gray-500">Etapa comercial</dt>
-          <dd className="text-sm text-gray-900">{data.stage || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium uppercase text-gray-500">Temperatura</dt>
-          <dd className="mt-0.5">
-            {data.temperature ? (
-              <Badge label={data.temperature} color={toneColor(data.temperature)} />
-            ) : (
-              "—"
-            )}
-          </dd>
-        </div>
+      <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div>
           <dt className="text-xs font-medium uppercase text-gray-500">Prob. de cierre</dt>
           <dd className="text-sm text-gray-900">{data.closingProbability || "—"}</dd>
         </div>
-        <div>
-          <dt className="text-xs font-medium uppercase text-gray-500">Presupuesto detectado</dt>
-          <dd className="text-sm text-gray-900">{data.budgetDetected || "—"}</dd>
-        </div>
-        <LevelBlock label="Riesgo de abandono" assessment={data.churnRisk} />
         <LevelBlock label="Confianza del cliente" assessment={data.clientConfidence} />
         <LevelBlock label="Urgencia" assessment={data.urgency} />
-        <LevelBlock label="Intención de compra" assessment={data.purchaseIntent} />
       </dl>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -99,40 +89,6 @@ export function SalesIntelligenceCard({ data }: { data: SalesIntelligence | null
           ) : (
             <p className="text-sm text-gray-400">Sin señales claras.</p>
           )}
-        </div>
-      </div>
-
-      {(data.nextAction || data.bestTechnique) && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {data.nextAction && (
-            <div className="rounded-md border border-gray-900 bg-gray-900 px-3 py-2.5">
-              <p className="text-xs font-medium uppercase text-gray-300">
-                Próxima acción recomendada
-              </p>
-              <p className="mt-0.5 text-sm text-white">{data.nextAction}</p>
-            </div>
-          )}
-          {data.bestTechnique && (
-            <div className="rounded-md border border-gray-200 px-3 py-2.5">
-              <p className="text-xs font-medium uppercase text-gray-500">Mejor técnica de venta</p>
-              <p className="mt-0.5 text-sm text-gray-900">{data.bestTechnique}</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <h4 className="mb-1 text-xs font-medium uppercase text-gray-500">
-            Preguntas pendientes
-          </h4>
-          <TagList items={data.pendingQuestions} emptyLabel="No hay preguntas pendientes." />
-        </div>
-        <div>
-          <h4 className="mb-1 text-xs font-medium uppercase text-gray-500">
-            Información del viaje faltante
-          </h4>
-          <TagList items={data.missingTravelInfo} emptyLabel="No falta información." />
         </div>
       </div>
     </div>
