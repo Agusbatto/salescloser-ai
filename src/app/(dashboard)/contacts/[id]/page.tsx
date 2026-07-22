@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClient } from "@/lib/services/contacts.service";
 import { listClientEvents } from "@/lib/services/timeline.service";
+import { listClientChatMessages } from "@/lib/services/client-chat.service";
 import { getStatusMeta } from "@/config/crm";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -16,6 +17,7 @@ import { SalesIntelligenceCard } from "@/components/features/contacts/SalesIntel
 import { PreContactStrategyCard } from "@/components/features/contacts/PreContactStrategyCard";
 import { RegeneratePreContactButton } from "@/components/features/contacts/RegeneratePreContactButton";
 import { ClientTimeline } from "@/components/features/contacts/ClientTimeline";
+import { ClientChatPanel } from "@/components/features/contacts/ClientChatPanel";
 import { ReanalyzeButton } from "@/components/features/contacts/ReanalyzeButton";
 
 interface ClientDetailPageProps {
@@ -33,7 +35,11 @@ function formatDate(value: string | null) {
 
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { id } = await params;
-  const [client, events] = await Promise.all([getClient(id), listClientEvents(id)]);
+  const [client, events, chatMessages] = await Promise.all([
+    getClient(id),
+    listClientEvents(id),
+    listClientChatMessages(id),
+  ]);
   if (!client) notFound();
 
   const statusMeta = getStatusMeta(client.status);
@@ -172,6 +178,11 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
 
         {/* Rail derecho: estado y actividad, visible sin tener que bajar toda la columna principal */}
         <div className="space-y-6 xl:col-span-1">
+          <Card>
+            <h2 className="mb-3 text-sm font-medium text-gray-900">Chat de este cliente</h2>
+            <ClientChatPanel clientId={client.id} initialMessages={chatMessages} />
+          </Card>
+
           <Card>
             <div className="mb-4 flex items-center justify-between">
               <div>

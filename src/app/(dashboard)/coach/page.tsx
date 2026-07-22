@@ -1,17 +1,18 @@
-import { Card } from "@/components/ui/Card";
+import { ScreenshotChat } from "@/components/features/coach/ScreenshotChat";
 
 export default function CoachPage() {
   return (
-    <div className="max-w-2xl">
-      <h1 className="mb-4 text-xl font-semibold text-gray-900">Coach IA</h1>
-      <Card>
-        <p className="text-sm text-gray-700">
-          Todavía no hay una vista general de coaching acá. Por ahora, el diagnóstico de
-          venta (SPIN, AIDA, BANT, Challenger, Sandler, Chris Voss, Belfort, Cardone, Tracy
-          y Cialdini) está disponible dentro de la ficha de cada cliente, en la card
-          "Diagnóstico de venta (IA)".
+    <div className="mx-auto max-w-3xl space-y-4">
+      <div>
+        <h1 className="text-xl font-semibold text-gray-900">Coach IA</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Subí una captura de pantalla de cualquier chat (WhatsApp, Instagram, mail) y te
+          sugiero mensajes concretos con las técnicas de venta (SPIN, AIDA, BANT, Challenger,
+          Sandler, Chris Voss, Belfort, Cardone, Tracy, Cialdini). Podés seguir pidiendo
+          ajustes sobre la misma captura — es una charla, no una consulta de una sola vez.
         </p>
-      </Card>
+      </div>
+      <ScreenshotChat />
     </div>
   );
 }
