@@ -20,6 +20,6 @@ export async function chatAboutScreenshot(turns: ChatTurn[], agencyContext?: str
     : SCREENSHOT_COACH_SYSTEM_PROMPT;
 
   const compactedTurns = await compactHistoryIfNeeded(turns);
-  const reply = await callAIChat(systemPrompt, compactedTurns, 1024);
+  const reply = await callAIChat(systemPrompt, compactedTurns, 2048);
   return reply.trim();
 }

@@ -155,14 +155,8 @@ function toDbPayload(input: ClientInput, ownerId?: string) {
   return {
     ...(ownerId ? { owner_id: ownerId } : {}),
     name: input.name,
-    company: input.company || null,
-    phone: input.phone || null,
-    email: input.email || null,
-    product_interest: input.productInterest || null,
     lead_origin: input.leadOrigin || null,
-    status: input.status,
     notes: input.notes || null,
-    last_contact_at: input.lastContactAt || null,
     combined_destinations: input.combinedDestinations ?? [],
     alternative_destinations: input.alternativeDestinations ?? [],
     date_flexibility: input.dateFlexibility || null,
@@ -224,6 +218,23 @@ export async function setClientTags(clientId: string, tagIds: string[]): Promise
     .from("client_tags")
     .insert(tagIds.map((tagId) => ({ client_id: clientId, tag_id: tagId })));
   if (insertError) throw new Error(`No se pudieron asignar las etiquetas: ${insertError.message}`);
+}
+
+/** Cambia el estado del cliente — control rápido aparte del formulario de edición. */
+export async function updateClientStatus(id: string, status: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("clients").update({ status }).eq("id", id);
+  if (error) throw new Error(`No se pudo cambiar el estado: ${error.message}`);
+}
+
+/** Marca "ahora" como último contacto — se llama sola cuando hay actividad en el chat del cliente. */
+export async function touchLastContact(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("clients")
+    .update({ last_contact_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(`No se pudo actualizar el último contacto: ${error.message}`);
 }
 
 export async function updateClientCoachAnalysis(id: string, analysis: CoachAnalysis): Promise<void> {

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClient } from "@/lib/services/contacts.service";
 import { listClientChatMessages } from "@/lib/services/client-chat.service";
-import { getStatusMeta } from "@/config/crm";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +12,8 @@ import { FollowUpCard } from "@/components/features/contacts/FollowUpCard";
 import { SalesIntelligenceCard } from "@/components/features/contacts/SalesIntelligenceCard";
 import { PreContactStrategyCard } from "@/components/features/contacts/PreContactStrategyCard";
 import { RegeneratePreContactButton } from "@/components/features/contacts/RegeneratePreContactButton";
+import { QuickStatusSelect } from "@/components/features/contacts/QuickStatusSelect";
+import { ClientTasksCard } from "@/components/features/contacts/ClientTasksCard";
 import { ClientChatPanel } from "@/components/features/contacts/ClientChatPanel";
 
 interface ClientDetailPageProps {
@@ -33,15 +34,13 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
   const [client, chatMessages] = await Promise.all([getClient(id), listClientChatMessages(id)]);
   if (!client) notFound();
 
-  const statusMeta = getStatusMeta(client.status);
-
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">{client.name}</h1>
           <div className="mt-1 flex items-center gap-2">
-            <Badge label={statusMeta.label} color={statusMeta.color} />
+            <QuickStatusSelect clientId={client.id} currentStatus={client.status} />
             {client.tags.map((tag) => (
               <Badge key={tag.id} label={tag.name} color={tag.color} />
             ))}
@@ -56,6 +55,11 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
       </div>
 
       {/* Todo apilado en una sola columna, en este orden */}
+
+      <Card>
+        <h2 className="mb-3 text-sm font-medium text-gray-900">Tareas pendientes</h2>
+        <ClientTasksCard clientId={client.id} />
+      </Card>
 
       <Card>
         <h2 className="mb-3 text-sm font-medium text-gray-900">Chat de este cliente</h2>
@@ -130,22 +134,6 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
 
       <Card>
         <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs font-medium uppercase text-gray-500">Empresa</dt>
-            <dd className="text-sm text-gray-900">{client.company || "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase text-gray-500">Teléfono</dt>
-            <dd className="text-sm text-gray-900">{client.phone || "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase text-gray-500">Correo</dt>
-            <dd className="text-sm text-gray-900">{client.email || "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase text-gray-500">Producto consultado</dt>
-            <dd className="text-sm text-gray-900">{client.productInterest || "—"}</dd>
-          </div>
           <div>
             <dt className="text-xs font-medium uppercase text-gray-500">Origen del lead</dt>
             <dd className="text-sm text-gray-900">{client.leadOrigin || "—"}</dd>

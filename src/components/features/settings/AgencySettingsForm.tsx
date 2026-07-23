@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { saveAgencySettingsAction, type SettingsActionResult } from "@/app/(dashboard)/settings/actions";
-import type { AgencySettings } from "@/lib/services/agency-settings.service";
+import type { AgencySettings, AgencyService } from "@/lib/services/agency-settings.service";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
@@ -14,11 +14,17 @@ export function AgencySettingsForm({ settings }: { settings: AgencySettings }) {
     null,
   );
 
-  const initialBlocks = settings.additionalServices
-    ? settings.additionalServices.split("\n").filter((b) => b.trim())
+  const [serviceBlocks, setServiceBlocks] = useState<AgencyService[]>(
+    settings.additionalServices.length > 0
+      ? settings.additionalServices
+      : [{ text: "", courtesy: false }],
+  );
+
+  const initialPaymentBlocks = settings.paymentMethods
+    ? settings.paymentMethods.split("\n").filter((b) => b.trim())
     : [""];
-  const [serviceBlocks, setServiceBlocks] = useState<string[]>(
-    initialBlocks.length > 0 ? initialBlocks : [""],
+  const [paymentBlocks, setPaymentBlocks] = useState<string[]>(
+    initialPaymentBlocks.length > 0 ? initialPaymentBlocks : [""],
   );
 
   return (
@@ -35,7 +41,12 @@ export function AgencySettingsForm({ settings }: { settings: AgencySettings }) {
       <input
         type="hidden"
         name="additionalServicesJson"
-        value={JSON.stringify(serviceBlocks.filter((b) => b.trim()))}
+        value={JSON.stringify(serviceBlocks.filter((b) => b.text.trim()))}
+      />
+      <input
+        type="hidden"
+        name="paymentMethodsJson"
+        value={JSON.stringify(paymentBlocks.filter((b) => b.trim()))}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -96,26 +107,40 @@ export function AgencySettingsForm({ settings }: { settings: AgencySettings }) {
         </div>
       </div>
 
+      {/* --- Servicios adicionales --- */}
       <div>
         <Label>Servicios adicionales que la IA puede ofrecer al cerrar</Label>
         <p className="mb-1.5 text-xs text-gray-500">
-          Un bloque por servicio, con su costo — la IA los va a sugerir cuando tenga sentido en
-          la conversación, no en cualquier momento.
+          Un bloque por servicio, con su costo. Marcá "Cortesía" si ese servicio se puede ofrecer
+          gratis cuando la situación lo amerite (ej. para cerrar una objeción de precio).
         </p>
         <div className="space-y-2">
           {serviceBlocks.map((block, i) => (
-            <div key={i} className="flex gap-2">
+            <div key={i} className="flex items-start gap-2">
               <Textarea
                 rows={2}
-                value={block}
+                value={block.text}
                 placeholder="ej. Seguro de asistencia al viajero — USD 25 por persona"
                 onChange={(e) => {
                   const next = [...serviceBlocks];
-                  next[i] = e.target.value;
+                  next[i] = { ...block, text: e.target.value };
                   setServiceBlocks(next);
                 }}
                 className="text-xs"
               />
+              <label className="flex shrink-0 flex-col items-center gap-1 pt-1 text-[11px] text-gray-600">
+                Cortesía
+                <input
+                  type="checkbox"
+                  checked={block.courtesy}
+                  onChange={(e) => {
+                    const next = [...serviceBlocks];
+                    next[i] = { ...block, courtesy: e.target.checked };
+                    setServiceBlocks(next);
+                  }}
+                  className="rounded border-gray-300"
+                />
+              </label>
               {serviceBlocks.length > 1 && (
                 <button
                   type="button"
@@ -129,10 +154,51 @@ export function AgencySettingsForm({ settings }: { settings: AgencySettings }) {
           ))}
           <button
             type="button"
-            onClick={() => setServiceBlocks([...serviceBlocks, ""])}
+            onClick={() => setServiceBlocks([...serviceBlocks, { text: "", courtesy: false }])}
             className="text-sm font-medium text-gray-700 hover:underline"
           >
             + Agregar servicio
+          </button>
+        </div>
+      </div>
+
+      {/* --- Formas de pago --- */}
+      <div>
+        <Label>Formas de pago</Label>
+        <p className="mb-1.5 text-xs text-gray-500">
+          Un bloque por modalidad — tarjetas, cuotas, transferencias, datos de cuenta, etc.
+        </p>
+        <div className="space-y-2">
+          {paymentBlocks.map((block, i) => (
+            <div key={i} className="flex gap-2">
+              <Textarea
+                rows={2}
+                value={block}
+                placeholder="ej. Transferencia bancaria — Banco X, cuenta 000-000, CBU ..."
+                onChange={(e) => {
+                  const next = [...paymentBlocks];
+                  next[i] = e.target.value;
+                  setPaymentBlocks(next);
+                }}
+                className="text-xs"
+              />
+              {paymentBlocks.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentBlocks(paymentBlocks.filter((_, idx) => idx !== i))}
+                  className="shrink-0 self-start rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-500 hover:bg-gray-50"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setPaymentBlocks([...paymentBlocks, ""])}
+            className="text-sm font-medium text-gray-700 hover:underline"
+          >
+            + Agregar forma de pago
           </button>
         </div>
       </div>

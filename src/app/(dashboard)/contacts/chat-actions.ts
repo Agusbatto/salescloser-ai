@@ -1,7 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getClient, updateClientCoachAnalysis, updateClientFollowUp, updateClientSalesIntelligence } from "@/lib/services/contacts.service";
+import {
+  getClient,
+  touchLastContact,
+  updateClientCoachAnalysis,
+  updateClientFollowUp,
+  updateClientSalesIntelligence,
+} from "@/lib/services/contacts.service";
 import {
   addClientChatMessage,
   clearClientChat,
@@ -55,6 +61,12 @@ export async function sendClientChatMessageAction(
     await addClientChatMessage(clientId, "user", trimmed, imageDataUrl);
     const reply = await replyInClientChat(client, history, trimmed, imageDataUrl, agencyContext);
     await addClientChatMessage(clientId, "assistant", reply);
+
+    try {
+      await touchLastContact(clientId);
+    } catch (err) {
+      console.error("No se pudo actualizar el último contacto:", err);
+    }
 
     revalidatePath(`/contacts/${clientId}`);
     return { success: true, reply };

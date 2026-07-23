@@ -56,20 +56,8 @@ function parseJsonRooms(val: string | null | undefined): { adults: number; minor
  */
 export const clientInputSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio"),
-  company: z.string().trim().optional().nullable(),
-  phone: z.string().trim().optional().nullable(),
-  email: z
-    .string()
-    .trim()
-    .email("Correo inválido")
-    .optional()
-    .or(z.literal(""))
-    .nullable(),
-  productInterest: z.string().trim().optional().nullable(),
   leadOrigin: z.string().trim().optional().nullable(),
-  status: z.string().trim().min(1),
   notes: z.string().trim().optional().nullable(),
-  lastContactAt: z.string().optional().nullable(),
 
   // Ficha del viaje — campos manuales nuevos.
   dateFlexibility: z.string().trim().optional().nullable(),
@@ -112,17 +100,19 @@ export const clientInputSchema = z.object({
 
 export type ClientInputRaw = z.infer<typeof clientInputSchema>;
 
-/** Forma final que usa el resto de la app: nombres sin el sufijo "Json". */
+/**
+ * Forma final que usa el resto de la app: nombres sin el sufijo "Json".
+ *
+ * A propósito NO incluye company/phone/email/productInterest (se
+ * sacaron del formulario), ni status/lastContactAt: el estado se
+ * cambia con un control rápido aparte (`updateClientStatus`) y el
+ * último contacto se actualiza solo cuando hay actividad en el chat
+ * (`touchLastContact`) — no tiene sentido que el formulario los pise.
+ */
 export interface ClientInput {
   name: string;
-  company?: string | null;
-  phone?: string | null;
-  email?: string | null;
-  productInterest?: string | null;
   leadOrigin?: string | null;
-  status: string;
   notes?: string | null;
-  lastContactAt?: string | null;
   dateFlexibility?: string | null;
   passengerRelationship?: string | null;
   tripReason?: string | null;
@@ -138,14 +128,8 @@ export interface ClientInput {
 export function toClientInput(raw: ClientInputRaw): ClientInput {
   return {
     name: raw.name,
-    company: raw.company,
-    phone: raw.phone,
-    email: raw.email,
-    productInterest: raw.productInterest,
     leadOrigin: raw.leadOrigin,
-    status: raw.status,
     notes: raw.notes,
-    lastContactAt: raw.lastContactAt,
     dateFlexibility: raw.dateFlexibility,
     passengerRelationship: raw.passengerRelationship,
     tripReason: raw.tripReason,

@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
   const { data: clients, error } = await supabase
     .from("clients")
-    .select("id, owner_id, name, status, coach_analysis, sales_intelligence");
+    .select("id, owner_id, name, status, coach_analysis, sales_intelligence, follow_up");
 
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
@@ -44,10 +44,17 @@ export async function GET(request: Request) {
       client.coach_analysis?.nextAction ||
       `Hacer seguimiento con ${client.name}`;
 
+    // Usa el mensaje ya redactado por "Analizar conversación" (sin costo
+    // de IA nuevo acá) — si todavía no hay ninguno, un texto genérico.
+    const description = client.follow_up?.message
+      ? `Enviale este mensaje: "${client.follow_up.message}"`
+      : "Todavía no hay un mensaje sugerido — entrá al chat del cliente y usá \"Analizar conversación\".";
+
     const { error: insertError } = await supabase.from("tasks").insert({
       client_id: client.id,
       owner_id: client.owner_id,
       title,
+      description,
       due_date: today,
     });
 

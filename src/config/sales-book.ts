@@ -123,4 +123,58 @@ export const BOOK_SECTIONS: BookSection[] = [
       "Regla general en las cinco: ninguna reemplaza el valor real de la propuesta. Son formas de no dejar pasar el momento en que el cliente ya está listo para decidir — no formas de convencer a alguien que genuinamente no quiere o no puede comprar.",
     ],
   },
+  {
+    id: "plantilla-bienvenida",
+    title: "Plantilla: mensaje de bienvenida",
+    body: [
+      "Se manda apenas llega la consulta, antes de tener todos los datos — el objetivo es generar conexión rápido (Cialdini: simpatía) y mostrar que hay una persona real del otro lado, no un bot.",
+      "\"¡Hola [Nombre]! Soy [Tu nombre] de [Agencia] 👋 Vi que estás averiguando sobre [destino/producto consultado] — qué lindo plan. Para armarte la mejor propuesta, ¿me contás un poco más de qué están buscando para este viaje?\"",
+      "Por qué funciona: usa el nombre, reconoce el interés puntual (no genérico), y termina con una pregunta abierta (SPIN — situación) en vez de tirar precios de entrada.",
+    ],
+  },
+  {
+    id: "plantilla-primer-contacto",
+    title: "Plantilla: primer contacto (después de la bienvenida)",
+    body: [
+      "Se usa una vez que ya tenés algún dato (destino, fechas aproximadas) y querés profundizar antes de cotizar — mezcla preguntas de Situación y de Implicación de SPIN.",
+      "\"Buenísimo, [destino] es un golazo para [motivo del viaje, ej. luna de miel]. Un par de preguntas para no pasarte nada por alto: ¿tienen fechas cerradas o hay flexibilidad? ¿Van a ser [cantidad] en total? Y contame, ¿qué es lo que más les importa que no pueda faltar en este viaje?\"",
+      "Por qué funciona: agrupa preguntas cerradas (fechas, cantidad) con una abierta al final que revela el criterio real de decisión — no solo precio.",
+    ],
+  },
+  {
+    id: "plantilla-seguimiento",
+    title: "Plantilla: seguimiento (cliente que no respondió)",
+    body: [
+      "Nunca repitas la misma pregunta que ya hiciste — sumá un dato o ángulo nuevo (esto es justo lo que hace el módulo de Seguimiento de la app automáticamente).",
+      "\"¡Hola [Nombre]! Te escribo porque encontré [dato nuevo concreto: una tarifa mejor, una fecha con más disponibilidad, una promo] para lo de [destino]. ¿Seguís con intención de viajar en esas fechas, o cambió algo de tu lado?\"",
+      "Por qué funciona: Cardone — nunca das por perdido un lead solo por silencio; el dato nuevo le da un motivo genuino para responder, en vez de sentir que lo estás presionando.",
+    ],
+  },
+  {
+    id: "plantilla-cierre",
+    title: "Plantilla: cierre",
+    body: [
+      "Se usa cuando ya está todo acordado y falta solo la confirmación — combina el cierre de resumen con el de alternativa (ver \"Técnicas de cierre\").",
+      "\"Perfecto, entonces quedamos en: [resumen de 2-3 líneas: destino, fechas, noches, qué incluye]. Para reservarlo, ¿preferís pagarlo en un pago o en cuotas? Así te mando el link/los datos según corresponda.\"",
+      "Por qué funciona: el resumen en voz alta (Cialdini — compromiso y coherencia) hace sentir que ya está decidido, y la pregunta de alternativa da por hecho el cierre, no lo vuelve a poner en duda.",
+    ],
+  },
+  {
+    id: "plantilla-mail",
+    title: "Plantilla: presentación por mail (propuesta formal)",
+    body: [
+      "Para cuando la cotización se manda por mail en vez de chat — más formal, pero sin perder calidez.",
+      "Asunto: \"Tu propuesta para [destino] — [Agencia]\"\n\n\"Hola [Nombre],\n\nTe comparto la propuesta que armamos especialmente para ustedes, pensando en [motivo del viaje/lo que mencionaron que buscaban].\n\n[Detalle de la propuesta: destino, fechas, hotel, noches, incluye]\n\nCualquier duda, quedo a disposición — también podemos ajustar cualquier detalle si no es exactamente lo que tenían en mente.\n\nSaludos,\n[Tu nombre]\n[Agencia] | [Teléfono]\"",
+      "Por qué funciona: personaliza el motivo del viaje en el cuerpo (no una plantilla genérica), y cierra dejando la puerta abierta a ajustes — reduce la fricción de decir que no encaja del todo.",
+    ],
+  },
+  {
+    id: "plantilla-pagos",
+    title: "Plantilla: información de pagos",
+    body: [
+      "Se manda una vez que el cliente ya confirmó que quiere avanzar — clara y sin vueltas, evita el ida y vuelta de \"¿y cómo pago?\".",
+      "\"Dale, te paso las opciones de pago que tenemos: [modalidades cargadas en Configuración — transferencia, tarjeta, cuotas, etc.]. ¿Cuál te queda más cómoda? Apenas me confirmes, te mando los datos exactos para que hagas el pago.\"",
+      "Por qué funciona: da opciones (cierre de alternativa) en vez de imponer una sola forma de pago, y deja explícito el siguiente paso concreto.",
+    ],
+  },
 ];

@@ -6,7 +6,7 @@ export default async function SettingsPage() {
   const settings = await getAgencySettings();
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Configuración</h1>
         <p className="mt-1 text-sm text-gray-500">

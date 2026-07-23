@@ -7,6 +7,7 @@ interface TaskRow {
   id: string;
   client_id: string;
   title: string;
+  description: string | null;
   status: string;
   due_date: string;
   completed_at: string | null;
@@ -15,9 +16,24 @@ interface TaskRow {
 }
 
 const TASK_SELECT = `
-  id, client_id, title, status, due_date, completed_at, created_at,
+  id, client_id, title, description, status, due_date, completed_at, created_at,
   clients ( name, coach_analysis )
 `;
+
+function mapTaskRow(row: TaskRow): Task {
+  return {
+    id: row.id,
+    clientId: row.client_id,
+    clientName: row.clients?.name ?? "Cliente",
+    title: row.title,
+    description: row.description,
+    status: row.status === "done" ? "done" : "pending",
+    dueDate: row.due_date,
+    completedAt: row.completed_at,
+    createdAt: row.created_at,
+    priorityScore: getPriorityScore(row.clients?.coach_analysis ?? null),
+  };
+}
 
 /** Tareas pendientes del usuario, ordenadas: atrasadas primero, después por prioridad del cliente. */
 export async function listPendingTasks(): Promise<Task[]> {
@@ -31,18 +47,7 @@ export async function listPendingTasks(): Promise<Task[]> {
   if (error) throw new Error(`No se pudieron obtener las tareas: ${error.message}`);
 
   const today = new Date().toISOString().slice(0, 10);
-
-  const tasks: Task[] = (data as unknown as TaskRow[]).map((row) => ({
-    id: row.id,
-    clientId: row.client_id,
-    clientName: row.clients?.name ?? "Cliente",
-    title: row.title,
-    status: row.status === "done" ? "done" : "pending",
-    dueDate: row.due_date,
-    completedAt: row.completed_at,
-    createdAt: row.created_at,
-    priorityScore: getPriorityScore(row.clients?.coach_analysis ?? null),
-  }));
+  const tasks = (data as unknown as TaskRow[]).map(mapTaskRow);
 
   return tasks.sort((a, b) => {
     const aOverdue = a.dueDate < today;
@@ -51,6 +56,20 @@ export async function listPendingTasks(): Promise<Task[]> {
     if (b.priorityScore !== a.priorityScore) return b.priorityScore - a.priorityScore;
     return a.dueDate.localeCompare(b.dueDate);
   });
+}
+
+/** Tareas pendientes de un cliente puntual — para mostrar en su ficha, con el detalle de qué hacer. */
+export async function listPendingTasksForClient(clientId: string): Promise<Task[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select(TASK_SELECT)
+    .eq("client_id", clientId)
+    .eq("status", "pending")
+    .order("due_date", { ascending: true });
+
+  if (error) throw new Error(`No se pudieron obtener las tareas del cliente: ${error.message}`);
+  return (data as unknown as TaskRow[]).map(mapTaskRow);
 }
 
 export interface ClientTaskCount {
@@ -100,6 +119,7 @@ export async function createTask(
   clientId: string,
   ownerId: string,
   title: string,
+  description?: string | null,
   dueDate?: string,
 ): Promise<void> {
   const supabase = await createClient();
@@ -107,6 +127,7 @@ export async function createTask(
     client_id: clientId,
     owner_id: ownerId,
     title,
+    description: description ?? null,
     due_date: dueDate ?? new Date().toISOString().slice(0, 10),
   });
   if (error) throw new Error(`No se pudo crear la tarea: ${error.message}`);

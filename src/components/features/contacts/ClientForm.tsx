@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import type { Client, Tag, RoomConfig } from "@/types/client";
-import { CLIENT_STATUSES, LEAD_ORIGINS } from "@/config/crm";
+import { LEAD_ORIGINS } from "@/config/crm";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -19,6 +20,7 @@ interface ClientFormProps {
 export function ClientForm({ client, availableTags, action }: ClientFormProps) {
   const [state, formAction, isPending] = useActionState(action, null);
   const selectedTagIds = new Set(client?.tags.map((t) => t.id));
+  const cancelHref = client ? `/contacts/${client.id}` : "/contacts";
 
   // Listas dinámicas — se serializan a JSON en inputs ocultos al enviar.
   const [combinedDestinations, setCombinedDestinations] = useState<string[]>(
@@ -58,26 +60,6 @@ export function ClientForm({ client, availableTags, action }: ClientFormProps) {
           <Input id="name" name="name" defaultValue={client?.name} required />
         </div>
         <div>
-          <Label htmlFor="company">Empresa</Label>
-          <Input id="company" name="company" defaultValue={client?.company ?? ""} />
-        </div>
-        <div>
-          <Label htmlFor="phone">Teléfono</Label>
-          <Input id="phone" name="phone" defaultValue={client?.phone ?? ""} />
-        </div>
-        <div>
-          <Label htmlFor="email">Correo</Label>
-          <Input id="email" name="email" type="email" defaultValue={client?.email ?? ""} />
-        </div>
-        <div>
-          <Label htmlFor="productInterest">Producto consultado</Label>
-          <Input
-            id="productInterest"
-            name="productInterest"
-            defaultValue={client?.productInterest ?? ""}
-          />
-        </div>
-        <div>
           <Label htmlFor="leadOrigin">Origen del lead</Label>
           <Select id="leadOrigin" name="leadOrigin" defaultValue={client?.leadOrigin ?? ""}>
             <option value="">Seleccionar...</option>
@@ -87,25 +69,6 @@ export function ClientForm({ client, availableTags, action }: ClientFormProps) {
               </option>
             ))}
           </Select>
-        </div>
-        <div>
-          <Label htmlFor="status">Estado del cliente</Label>
-          <Select id="status" name="status" defaultValue={client?.status ?? "nuevo"}>
-            {CLIENT_STATUSES.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="lastContactAt">Fecha del último contacto</Label>
-          <Input
-            id="lastContactAt"
-            name="lastContactAt"
-            type="date"
-            defaultValue={client?.lastContactAt?.slice(0, 10) ?? ""}
-          />
         </div>
       </div>
 
@@ -412,6 +375,11 @@ export function ClientForm({ client, availableTags, action }: ClientFormProps) {
       </div>
 
       <div className="flex justify-end gap-3">
+        <Link href={cancelHref}>
+          <Button type="button" variant="secondary">
+            Cancelar
+          </Button>
+        </Link>
         <Button type="submit" disabled={isPending}>
           {isPending ? "Guardando..." : client ? "Guardar cambios" : "Crear cliente"}
         </Button>

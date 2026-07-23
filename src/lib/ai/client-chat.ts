@@ -69,6 +69,6 @@ ${buildClientContext(client)}`;
   // `client_chat_messages` (lo que ve el vendedor) no se toca acá.
   const compactedTurns = await compactHistoryIfNeeded(turns);
 
-  const reply = await callAIChat(systemPrompt, compactedTurns, 1024);
+  const reply = await callAIChat(systemPrompt, compactedTurns, 2048);
   return reply.trim();
 }

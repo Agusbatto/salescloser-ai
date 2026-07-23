@@ -3,6 +3,8 @@ export interface Task {
   clientId: string;
   clientName: string;
   title: string;
+  /** El detalle concreto de qué hacer (ej. el mensaje ya redactado para mandarle al cliente). */
+  description: string | null;
   status: "pending" | "done";
   dueDate: string;
   completedAt: string | null;
